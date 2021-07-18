@@ -37,6 +37,7 @@ type File struct {
 	ContentTypes  *contentTypes
 	Relationships sync.Map
 	Package       sync.Map
+
 	CharsetReader charsetTranscoderFn
 }
 

@@ -12,6 +12,12 @@ package goword
 import "errors"
 
 var (
+	// ErrImgExt defined the error message on receive an unsupported image
+	// extension.
+	ErrImgExt = errors.New("unsupported image extension")
+	// ErrMaxFileNameLength defined the error message on receive the file name
+	// length overflow.
+	ErrMaxFileNameLength = errors.New("file name length exceeds maximum limit")
 	// ErrEncrypt defined the error message on encryption spreadsheet.
 	ErrEncrypt = errors.New("not support encryption currently")
 	// ErrUnknownEncryptMechanism defined the error message on unsupport
