@@ -12,6 +12,7 @@ package goword
 import (
 	"archive/zip"
 	"bytes"
+	"encoding/xml"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -63,7 +64,6 @@ func newFile() *File {
 		Relationships: sync.Map{},
 		CharsetReader: charset.NewReaderLabel,
 	}
-
 }
 
 func OpenReader(r io.Reader, opt ...Options) (*File, error) {
@@ -94,4 +94,15 @@ func OpenReader(r io.Reader, opt ...Options) (*File, error) {
 		f.Package.Store(k, v)
 	}
 	return f, nil
+}
+
+// CharsetTranscoder Set user defined codepage transcoder function for open
+// DOCX from non UTF-8 encoding.
+func (f *File) CharsetTranscoder(fn charsetTranscoderFn) *File { f.CharsetReader = fn; return f }
+
+// Creates new XML decoder with charset reader.
+func (f *File) xmlNewDecoder(reader io.Reader) *xml.Decoder {
+	decoder := xml.NewDecoder(reader)
+	decoder.CharsetReader = f.CharsetReader
+	return decoder
 }

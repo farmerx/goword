@@ -50,3 +50,67 @@ func readFile(file *zip.File) ([]byte, error) {
 	}
 	return buff.Bytes(), nil
 }
+
+// readXML provides a function to read XML content as string.
+func (f *File) readXML(name string) []byte {
+	if content, _ := f.Package.Load(name); content != nil {
+		return content.([]byte)
+	}
+	return []byte{}
+}
+
+// saveFileList provides a function to update given file content in file list
+// of XLSX.
+func (f *File) saveFileList(name string, content []byte) {
+	newContent := make([]byte, 0, len(XMLHeader)+len(content))
+	newContent = append(newContent, []byte(XMLHeader)...)
+	newContent = append(newContent, content...)
+	f.Package.Store(name, newContent)
+}
+
+// namespaceStrictToTransitional provides a method to convert Strict and
+// Transitional namespaces.
+func namespaceStrictToTransitional(content []byte) []byte {
+	var namespaceTranslationDic = map[string]string{
+		//StrictSourceRelationship:               SourceRelationship.Value,
+		//StrictSourceRelationshipOfficeDocument: SourceRelationshipOfficeDocument,
+		//StrictSourceRelationshipChart:          SourceRelationshipChart,
+		//StrictSourceRelationshipComments:       SourceRelationshipComments,
+		//StrictSourceRelationshipImage:          SourceRelationshipImage,
+		//StrictNameSpaceSpreadSheet:             NameSpaceSpreadSheet.Value,
+	}
+	for s, n := range namespaceTranslationDic {
+		content = bytesReplace(content, []byte(s), []byte(n), -1)
+	}
+	return content
+}
+
+// bytesReplace replace old bytes with given new.
+func bytesReplace(s, old, new []byte, n int) []byte {
+	if n == 0 {
+		return s
+	}
+
+	if len(old) < len(new) {
+		return bytes.Replace(s, old, new, n)
+	}
+
+	if n < 0 {
+		n = len(s)
+	}
+
+	var wid, i, j, w int
+	for i, j = 0, 0; i < len(s) && j < n; j++ {
+		wid = bytes.Index(s[i:], old)
+		if wid < 0 {
+			break
+		}
+
+		w += copy(s[w:], s[i:i+wid])
+		w += copy(s[w:], new)
+		i += wid + len(old)
+	}
+
+	w += copy(s[w:], s[i:])
+	return s[0:w]
+}
